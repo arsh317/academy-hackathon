@@ -3,6 +3,16 @@ import os
 from flask import Flask
 from flask import request
 
+from flask import render_template
+
+todo_store={}
+    
+todo_store['depo']= ['Go for run', 'Listen Rock Music'] 
+todo_store['shivang']= ['Read book', 'Play Fifa', 'Drink Coffee'] 
+todo_store['raj']= ['Study', 'Brush']
+todo_store['anket']= ['Sleep', 'Code'] 
+todo_store['aagam']= ['play cricket', 'have tea'] 
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -14,30 +24,49 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    def todo_view(todos):
-        the_view = ' List of my todos: ' + '<br/>'
-        ct=1
-        for todo in todos:
-            the_view += ( str(ct) + ' : ' + todo + '<br/>' )
-            ct+=1
 
-        the_view += '---- LIST ENDS HERE ---'
-        return the_view
+    def select_todos(name):
+        global todo_store
+        return todo_store[name]
 
     def get_todos_by_name(name):
-        if name == 'depo':
-            return ['Go for run', 'Listen Rock Music']
-        elif name == 'shivang':
-            return ['Read book', 'Play Fifa', 'Drink Coffee']
-        elif name == 'raj':
-            return ['Study', 'Brush']
-        elif name == 'sanket':
-            return ['Sleep', 'Code']
-        elif name == 'aagam':
-            return ['play cricket', 'have tea']
-        else:
-            return []
+        try:
+            return select_todos(name)  
+        except:
+            return None
 
+    def ins_todo(name,todo):
+        global todo_store
+        todo_store[name].append(todo)
+
+    def add_todo_by_name(name,todo):
+
+        try:
+            ins_todo(name,todo) 
+            return 'success' 
+        except:
+            return 'fail'
+
+
+    
+    @app.route('/add_todo')
+    def add_todo():
+        name = request.args.get('name')
+        todo = request.args.get('todo')
+
+        print('---------')
+        print(name," ",todo)
+        print('---------')
+        
+        ans=add_todo_by_name(name,todo)
+
+        if(ans=='success'):
+            return "Added Successfully"    
+        else:
+            return render_template ('404.html'),404
+
+        
+         
 
     # http://127.0.0.1:5000/todos?name=duster
     @app.route('/todos')
@@ -48,7 +77,11 @@ def create_app(test_config=None):
         print('---------')
 
         person_todo_list = get_todos_by_name(name)
-        return todo_view(person_todo_list)    
+
+        if(person_todo_list!=None):
+            return render_template('todo_view.html',todoss=person_todo_list)    
+        else:
+            return render_template ('404.html'),404            
 
 
 
